@@ -1,14 +1,12 @@
 {
-  "name": "stitch-tamagotchi",
+  "name": "tamagotchi-app",
   "version": "1.0.0",
+  "description": "Tamagotchi Telegram Mini App",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.18.2",
-    "node-telegram-bot-api": "^0.63.0",
-    "sqlite3": "^5.1.7"
+    "express": "^4.19.2"
   }
 }
