@@ -31,10 +31,10 @@ db.run(`
 
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, `Привет, ${msg.from.first_name}! Открывай наше космическое мини-приложение!`, {
+    bot.sendMessage(chatId, `Привет, ${msg.from.first_name}! Запускай наше космическое тамагочи с Настей!`, {
         reply_markup: {
             inline_keyboard: [[
-                { text: "🚀 Запустить Игру", web_app: { url: "https://stitch-game.onrender.com" } }
+                { text: "🚀 Играть", web_app: { url: "https://stitch-game.onrender.com" } }
             ]]
         }
     });
