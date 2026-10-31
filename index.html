@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stitch Universe Tamagotchi</title>
-    <script src="https://telegram.org/js/telegram-web-app.js?v=11"></script>
+    <title>Stitch & Angel Full Universe</title>
+    <script src="https://telegram.org/js/telegram-web-app.js?v=12"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #070b19; color: #fff; padding: 12px; text-align: center; padding-bottom: 75px; }
@@ -16,9 +16,9 @@
         
         /* Навигация */
         .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #0f172a; display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid #1e293b; z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
-        .nav-item { background: none; border: none; color: #64748b; font-size: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; font-weight: bold; }
+        .nav-item { background: none; border: none; color: #64748b; font-size: 9px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; font-weight: bold; }
         .nav-item.active { color: #38bdf8; }
-        .nav-item span.icon { font-size: 18px; }
+        .nav-item span.icon { font-size: 16px; }
 
         .dialog-bubble { background: #1e293b; border-radius: 14px; padding: 12px 15px; margin: 12px 0; font-size: 13px; color: #38bdf8; font-style: italic; border-left: 4px solid #38bdf8; text-align: left; }
         
@@ -26,14 +26,13 @@
         .bar-container { background: #0b1329; border-radius: 10px; height: 18px; margin: 8px 0; overflow: hidden; position: relative; border: 1px solid #1e293b; }
         .bar-fill { height: 100%; transition: width 0.4s ease; }
         .bg-hunger { background: linear-gradient(90deg, #ef4444, #f87171); }
-        .bg-energy { background: linear-gradient(90deg, #eab308, #facc15); }
         .bg-happy { background: linear-gradient(90deg, #ec4899, #f472b6); }
         .bar-text { position: absolute; width: 100%; top: 0; left: 0; font-size: 11px; font-weight: bold; line-height: 18px; text-shadow: 1px 1px 2px #000; }
         
         button.action-btn { background: #38bdf8; color: #070b19; border: none; padding: 10px 14px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 12px; }
         button.action-btn:active { transform: scale(0.93); }
 
-        .item-row { background: #1a233a; border: 1px solid #38bdf8; border-radius: 14px; padding: 12px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+        .action-card, .item-row { background: #1a233a; border: 1px solid #38bdf8; border-radius: 14px; padding: 12px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
         
         .hidden { display: none !important; }
         
@@ -48,7 +47,7 @@
     <!-- ЭКРАН ВЫБОРА -->
     <div id="selection-screen" class="card">
         <h2 style="color: #38bdf8;">Выбери своего монстрика! 👽</h2>
-        <p style="color: #94a3b8; font-size: 12px; margin: 6px 0 12px;">Собирай склад еды и отправляйся в путешествия с Настей</p>
+        <p style="color: #94a3b8; font-size: 12px; margin: 6px 0 12px;">Общий дом, визиты к Насте и склад еды</p>
         
         <div class="selection-grid">
             <div class="option-box" onclick="selectCharacter('stitch')">
@@ -85,7 +84,7 @@
                 </div>
 
                 <div id="dialog-box" class="dialog-bubble">
-                    "Охана — значит семья. Покорми меня едой со склада!"
+                    "Охана — значит семья. Загляни на склад и покорми меня!"
                 </div>
 
                 <div class="bar-container">
@@ -99,23 +98,62 @@
             </div>
         </div>
 
-        <!-- ВКЛАДКА 2: СКЛАД (ЕДА И ИГРУШКИ) -->
-        <div id="tab-inventory" class="tab-content hidden">
-            <div class="card">
-                <h2 style="color: #38bdf8;">📦 Склад еды и вещей</h2>
-                <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Без еды сытность не поднять! Используй припасы:</p>
+        <!-- ВКЛАДКА 2: ОБЩИЙ ДОМ -->
+        <div id="tab-house" class="tab-content hidden">
+            <div class="card" style="border: 2px solid #38bdf8; background: #111c33;">
+                <h2 style="color: #38bdf8;">🏡 Наш Общий Дом</h2>
+                <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Уютное гнездышко для вас с Настей</p>
                 
-                <div id="inventory-list" style="margin-top: 15px;">
-                    <!-- Сюда динамически подгружается склад -->
+                <div style="background: #0b1329; padding: 15px; border-radius: 14px; margin-top: 15px; text-align: left;">
+                    <h4 style="color: #38bdf8; margin-bottom: 5px;">🛋️ Атмосфера:</h4>
+                    <p style="font-size: 12px; color: #cbd5e1;">В доме тепло и пахнет гавайским чаем. Питомцы отдыхают вместе!</p>
+                </div>
+
+                <div class="action-card" style="margin-top: 15px;">
+                    <div>
+                        <h4 style="color: #ec4899;">☕ Устроить вечерний чай</h4>
+                        <p style="font-size: 11px; color: #94a3b8;">Поднять счастье питомцу (+35%)</p>
+                    </div>
+                    <button class="action-btn" onclick="doAction('house_tea')">Пить чай</button>
                 </div>
             </div>
         </div>
 
-        <!-- ВКЛАДКА 3: ПУТЕШЕСТВИЯ (30 МИНУТ) -->
+        <!-- ВКЛАДКА 3: В ГОСТИ К НАСТЕ -->
+        <div id="tab-visit" class="tab-content hidden">
+            <div class="card" style="border: 2px dashed #ec4899; background: #1a102f;">
+                <h2 style="color: #ec4899;">🚪 В гостях у Насти</h2>
+                <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Информация о второй половинке</p>
+                
+                <div id="partner-info" style="margin-top: 15px; color: #cbd5e1; font-size: 13px; text-align: left; background: #0b1329; padding: 15px; border-radius: 12px;">
+                    Загрузка данных Насти...
+                </div>
+
+                <div class="action-card" style="margin-top: 15px;">
+                    <div>
+                        <h4 style="color: #38bdf8;">🎁 Передать гостинец</h4>
+                        <p style="font-size: 11px; color: #94a3b8;">Поделиться радостью с питомцем Насти</p>
+                    </div>
+                    <button class="action-btn" onclick="doAction('visit_gift')">Подарить</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ВКЛАДКА 4: СКЛАД -->
+        <div id="tab-inventory" class="tab-content hidden">
+            <div class="card">
+                <h2 style="color: #38bdf8;">📦 Склад еды и вещей</h2>
+                <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Используй припасы, чтобы поднять сытость:</p>
+                
+                <div id="inventory-list" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+
+        <!-- ВКЛАДКА 5: ПОХОДЫ -->
         <div id="tab-travel" class="tab-content hidden">
             <div class="card">
-                <h2 style="color: #38bdf8;">🗺️ Галактический Бардак</h2>
-                <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Отправь питомца на 30 минут хулиганить по галактике за ценным лутом!</p>
+                <h2 style="color: #38bdf8;">🗺️ Галактические Походы</h2>
+                <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Отправь питомца на 30 минут за лутом и припасами!</p>
                 
                 <div id="travel-box" style="margin-top: 20px;">
                     <button class="action-btn" onclick="startTravel()" id="travel-btn" style="font-size: 14px; padding: 15px 25px;">🚀 Отправить на поиски (30 мин)</button>
@@ -127,6 +165,8 @@
         <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ -->
         <div class="nav-bar">
             <button class="nav-item active" onclick="switchTab('home', this)"><span class="icon">🏠</span>Питомец</button>
+            <button class="nav-item" onclick="switchTab('house', this)"><span class="icon">🏡</span>Общий дом</button>
+            <button class="nav-item" onclick="switchTab('visit', this)"><span class="icon">🚪</span>В гостях</button>
             <button class="nav-item" onclick="switchTab('inventory', this)"><span class="icon">📦</span>Склад</button>
             <button class="nav-item" onclick="switchTab('travel', this)"><span class="icon">🗺️</span>Походы</button>
         </div>
@@ -145,15 +185,13 @@
             ruben: { name: "Рубен 🥪", img: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=300" }
         };
 
-        let currentPlayerData = null;
-
         async function init() {
             try {
                 const res = await fetch(`/api/player/${tgUser.id}`);
                 const data = await res.json();
                 if (data.registered) {
-                    currentPlayerData = data.data;
                     showGame(data.data, data.inventory);
+                    loadPartner();
                     checkTravelStatus(data.data.travel_end);
                 } else {
                     document.getElementById('selection-screen').classList.remove('hidden');
@@ -190,8 +228,8 @@
 
         function renderInventory(inventory) {
             const list = document.getElementById('inventory-list');
-            if (inventory.length === 0) {
-                list.innerHTML = `<p style="color: #94a3b8; font-size: 13px;">Склад пуст! Отправь питомца в путешествие за едой.</p>`;
+            if (!inventory || inventory.length === 0) {
+                list.innerHTML = `<p style="color: #94a3b8; font-size: 13px;">Склад пуст! Отправь питомца в поход за едой.</p>`;
                 return;
             }
             list.innerHTML = inventory.map(item => `
@@ -219,6 +257,30 @@
             }
         }
 
+        async function doAction(action) {
+            const res = await fetch('/api/action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ telegram_id: tgUser.id, action })
+            });
+            const data = await res.json();
+            init();
+            alert(data.actionMessage);
+        }
+
+        async function loadPartner() {
+            const res = await fetch(`/api/partner/${tgUser.id}`);
+            const data = await res.json();
+            const pDiv = document.getElementById('partner-info');
+            if (data.partner) {
+                const p = data.partner;
+                const pName = charsData[p.character]?.name || p.character;
+                pDiv.innerHTML = `✨ <b>Имя:</b> ${p.username}<br>👽 <b>Питомец:</b> ${pName}<br>⚡ <b>Уровень:</b> ${p.level} | <b>Счастье:</b> ${p.happiness}%<br>📍 <b>Статус:</b> ${p.status}`;
+            } else {
+                pDiv.innerHTML = '🐾 Настя еще не зашла в гостиную!<br><span style="font-size: 11px; color: #94a3b8;">Позови Настю в бота, чтобы растить питомцев вместе!</span>';
+            }
+        }
+
         async function startTravel() {
             const res = await fetch('/api/start-travel', {
                 method: 'POST',
@@ -227,8 +289,8 @@
             });
             const data = await res.json();
             if (data.success) {
-                checkTravelStatus(data.travel_end);
-                alert("Питомец ушел в галактику! Бот пришлет тебе уведомление через 30 минут.");
+                init();
+                alert("Питомец ушел в поход! Бот пришлет уведомление через 30 минут.");
             }
         }
 
@@ -247,12 +309,12 @@
                 const timeLeft = travelEnd - Date.now();
                 if (timeLeft <= 0) {
                     clearInterval(interval);
-                    location.reload();
+                    init();
                     return;
                 }
                 const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-                timerText.innerText = `⏳ Питомец на задании! Вернется через: ${minutes} мин ${seconds} сек`;
+                timerText.innerText = `⏳ Питомец в походе! Вернется через: ${minutes} мин ${seconds} сек`;
             }, 1000);
         }
 
