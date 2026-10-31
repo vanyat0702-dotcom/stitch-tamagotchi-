@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stitch & Angel Home Universe</title>
-    <script src="https://telegram.org/js/telegram-web-app.js?v=10"></script>
+    <title>Stitch Universe Tamagotchi</title>
+    <script src="https://telegram.org/js/telegram-web-app.js?v=11"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #070b19; color: #fff; padding: 12px; text-align: center; padding-bottom: 75px; }
         
         .card { background: #131b2e; border-radius: 20px; padding: 18px; margin-bottom: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.6); border: 1px solid #1e293b; }
         
-        /* Аватары */
         .monster-avatar-container { width: 140px; height: 140px; border-radius: 50%; border: 4px solid #38bdf8; margin: 12px auto; overflow: hidden; background: #0b1329; box-shadow: 0 0 25px rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; }
         .monster-avatar-container img { width: 100%; height: 100%; object-fit: cover; }
         
@@ -31,11 +30,10 @@
         .bg-happy { background: linear-gradient(90deg, #ec4899, #f472b6); }
         .bar-text { position: absolute; width: 100%; top: 0; left: 0; font-size: 11px; font-weight: bold; line-height: 18px; text-shadow: 1px 1px 2px #000; }
         
-        .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
-        button.action-btn { background: #38bdf8; color: #070b19; border: none; padding: 12px 6px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 12px; }
+        button.action-btn { background: #38bdf8; color: #070b19; border: none; padding: 10px 14px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 12px; }
         button.action-btn:active { transform: scale(0.93); }
 
-        .action-card { background: #1a233a; border: 1px solid #38bdf8; border-radius: 16px; padding: 15px; margin-top: 10px; text-align: left; display: flex; justify-content: space-between; align-items: center; }
+        .item-row { background: #1a233a; border: 1px solid #38bdf8; border-radius: 14px; padding: 12px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
         
         .hidden { display: none !important; }
         
@@ -50,7 +48,7 @@
     <!-- ЭКРАН ВЫБОРА -->
     <div id="selection-screen" class="card">
         <h2 style="color: #38bdf8;">Выбери своего монстрика! 👽</h2>
-        <p style="color: #94a3b8; font-size: 12px; margin: 6px 0 12px;">Строим общий дом и путешествуем с Настей</p>
+        <p style="color: #94a3b8; font-size: 12px; margin: 6px 0 12px;">Собирай склад еды и отправляйся в путешествия с Настей</p>
         
         <div class="selection-grid">
             <div class="option-box" onclick="selectCharacter('stitch')">
@@ -75,18 +73,19 @@
     <!-- ИГРОВОЙ ИНТЕРФЕЙС -->
     <div id="game-container" class="hidden">
         
-        <!-- ВКЛАДКА 1: МОЙ ПИТОМЕЦ -->
+        <!-- ВКЛАДКА 1: ПИТОМЕЦ -->
         <div id="tab-home" class="tab-content">
             <div class="card">
                 <h2 id="char-name">Монстрик</h2>
                 <p id="char-level" style="color: #38bdf8; margin-top: 3px; font-size: 13px;">Уровень 1 (0 XP)</p>
+                <p id="char-status" style="color: #a855f7; font-size: 11px; margin-top: 2px;">Статус: Дома</p>
                 
                 <div class="monster-avatar-container">
                     <img id="char-img" src="" alt="Питомчик">
                 </div>
 
                 <div id="dialog-box" class="dialog-bubble">
-                    "Охана — значит семья. Никто не брошен!"
+                    "Охана — значит семья. Покорми меня едой со склада!"
                 </div>
 
                 <div class="bar-container">
@@ -94,83 +93,33 @@
                     <div id="hunger-text" class="bar-text">Сытость: 100%</div>
                 </div>
                 <div class="bar-container">
-                    <div id="energy-bar" class="bar-fill bg-energy" style="width: 100%;"></div>
-                    <div id="energy-text" class="bar-text">Бодрость: 100%</div>
-                </div>
-                <div class="bar-container">
                     <div id="happy-bar" class="bar-fill bg-happy" style="width: 100%;"></div>
                     <div id="happy-text" class="bar-text">Счастье: 100%</div>
                 </div>
-
-                <div class="btn-grid">
-                    <button class="action-btn" onclick="doAction('feed')">🍖 Еда</button>
-                    <button class="action-btn" onclick="doAction('play')">🎮 Игры</button>
-                    <button class="action-btn" onclick="doAction('sleep')">😴 Сон</button>
-                </div>
             </div>
         </div>
 
-        <!-- ВКЛАДКА 2: НАШ ОБЩИЙ ДОМ -->
-        <div id="tab-house" class="tab-content hidden">
-            <div class="card" style="border: 2px solid #38bdf8; background: #111c33;">
-                <h2 style="color: #38bdf8;">🏡 Наш Общий Дом</h2>
-                <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Уютное гнездышко для вас с Настей</p>
+        <!-- ВКЛАДКА 2: СКЛАД (ЕДА И ИГРУШКИ) -->
+        <div id="tab-inventory" class="tab-content hidden">
+            <div class="card">
+                <h2 style="color: #38bdf8;">📦 Склад еды и вещей</h2>
+                <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Без еды сытность не поднять! Используй припасы:</p>
                 
-                <div style="background: #0b1329; padding: 15px; border-radius: 14px; margin-top: 15px; text-align: left;">
-                    <h4 style="color: #38bdf8; margin-bottom: 5px;">🛋️ Статус очага:</h4>
-                    <p style="font-size: 12px; color: #cbd5e1;" id="house-status">В доме тепло, пахнет гавайским кофе и уютом. Питомцы играют вместе!</p>
-                </div>
-
-                <div class="action-card" style="margin-top: 15px;">
-                    <div>
-                        <h4 style="color: #ec4899;">☕ Устроить вечерний чай</h4>
-                        <p style="font-size: 11px; color: #94a3b8;">Поднять счастье обоим питомцам (+35%)</p>
-                    </div>
-                    <button class="action-btn" onclick="doAction('house_tea')">Пить чай</button>
+                <div id="inventory-list" style="margin-top: 15px;">
+                    <!-- Сюда динамически подгружается склад -->
                 </div>
             </div>
         </div>
 
-        <!-- ВКЛАДКА 3: В ГОСТИ К НАСТЕ -->
-        <div id="tab-visit" class="tab-content hidden">
-            <div class="card" style="border: 2px dashed #ec4899; background: #1a102f;">
-                <h2 style="color: #ec4899;">🚪 В гостях у Насти</h2>
-                <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Загляните в гости друг к другу</p>
-                
-                <div id="visit-info" style="margin-top: 15px; color: #cbd5e1; font-size: 13px; text-align: left; background: #0b1329; padding: 15px; border-radius: 12px;">
-                    Загрузка данных гостевой комнаты...
-                </div>
-
-                <div class="action-card" style="margin-top: 15px;">
-                    <div>
-                        <h4 style="color: #38bdf8;">🎁 Принести гостинец</h4>
-                        <p style="font-size: 11px; color: #94a3b8;">Поделиться вкусняшкой с питомцем Насти</p>
-                    </div>
-                    <button class="action-btn" onclick="doAction('visit_gift')">Подарить</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ВКЛАДКА 4: ПУТЕШЕСТВИЯ -->
+        <!-- ВКЛАДКА 3: ПУТЕШЕСТВИЯ (30 МИНУТ) -->
         <div id="tab-travel" class="tab-content hidden">
             <div class="card">
-                <h2 style="color: #38bdf8;">🗺️ Совместные Путешествия</h2>
-                <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Исследуйте галактику вместе с Настей!</p>
+                <h2 style="color: #38bdf8;">🗺️ Галактический Бардак</h2>
+                <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Отправь питомца на 30 минут хулиганить по галактике за ценным лутом!</p>
                 
-                <div class="action-card">
-                    <div>
-                        <h4 style="color: #38bdf8;">🌴 Пляжи Гавайев</h4>
-                        <p style="font-size: 11px; color: #94a3b8;">Романтический отдых у океана</p>
-                    </div>
-                    <button class="action-btn" onclick="doAction('travel_hawaii')">Лететь</button>
-                </div>
-
-                <div class="action-card">
-                    <div>
-                        <h4 style="color: #eab308;">🌌 Космический патруль</h4>
-                        <p style="font-size: 11px; color: #94a3b8;">Галактические приключения и много XP</p>
-                    </div>
-                    <button class="action-btn" onclick="doAction('travel_space')">Лететь</button>
+                <div id="travel-box" style="margin-top: 20px;">
+                    <button class="action-btn" onclick="startTravel()" id="travel-btn" style="font-size: 14px; padding: 15px 25px;">🚀 Отправить на поиски (30 мин)</button>
+                    <p id="travel-timer" style="color: #eab308; margin-top: 15px; font-weight: bold;"></p>
                 </div>
             </div>
         </div>
@@ -178,9 +127,8 @@
         <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ -->
         <div class="nav-bar">
             <button class="nav-item active" onclick="switchTab('home', this)"><span class="icon">🏠</span>Питомец</button>
-            <button class="nav-item" onclick="switchTab('house', this)"><span class="icon">🏡</span>Общий дом</button>
-            <button class="nav-item" onclick="switchTab('visit', this)"><span class="icon">🚪</span>В гостях</button>
-            <button class="nav-item" onclick="switchTab('travel', this)"><span class="icon">🗺️</span>Поездки</button>
+            <button class="nav-item" onclick="switchTab('inventory', this)"><span class="icon">📦</span>Склад</button>
+            <button class="nav-item" onclick="switchTab('travel', this)"><span class="icon">🗺️</span>Походы</button>
         </div>
 
     </div>
@@ -191,19 +139,22 @@
         const tgUser = tg.initDataUnsafe?.user || { id: "123456", first_name: "Брат" };
 
         const charsData = {
-            stitch: { name: "Стич ⚡", img: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300", phrases: ["Охана — значит семья!", "Стич дома с Настей!", "Алоха!"] },
-            angel: { name: "Ангел 💕", img: "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", phrases: ["Любовь спасает галактику~", "Уютный вечер дома с любимыми."] },
-            sparky: { name: "Спарки ⚡", img: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300", phrases: ["Искры летят! В общем доме тепло."] },
-            ruben: { name: "Рубен 🥪", img: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=300", phrases: ["Сэндвич на кухне общего дома — лучшее изобретение."] }
+            stitch: { name: "Стич ⚡", img: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300" },
+            angel: { name: "Ангел 💕", img: "https://images.unsplash.com/photo-1563089145-599997674d42?w=300" },
+            sparky: { name: "Спарки ⚡", img: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300" },
+            ruben: { name: "Рубен 🥪", img: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=300" }
         };
+
+        let currentPlayerData = null;
 
         async function init() {
             try {
                 const res = await fetch(`/api/player/${tgUser.id}`);
                 const data = await res.json();
                 if (data.registered) {
-                    showGame(data.data);
-                    loadPartner();
+                    currentPlayerData = data.data;
+                    showGame(data.data, data.inventory);
+                    checkTravelStatus(data.data.travel_end);
                 } else {
                     document.getElementById('selection-screen').classList.remove('hidden');
                 }
@@ -219,7 +170,7 @@
             location.reload();
         }
 
-        function showGame(player) {
+        function showGame(player, inventory) {
             document.getElementById('selection-screen').classList.add('hidden');
             document.getElementById('game-container').classList.remove('hidden');
             
@@ -227,44 +178,82 @@
             document.getElementById('char-name').innerText = info.name;
             document.getElementById('char-img').src = info.img;
             document.getElementById('char-level').innerText = `Уровень ${player.level} (${player.xp} XP)`;
+            document.getElementById('char-status').innerText = `Статус: ${player.status}`;
             
-            const randomMsg = info.phrases[Math.floor(Math.random() * info.phrases.length)];
-            document.getElementById('dialog-box').innerText = `"${randomMsg}"`;
-            
-            updateStats(player);
+            document.getElementById('hunger-bar').style.width = player.hunger + '%';
+            document.getElementById('hunger-text').innerText = `Сытость: ${player.hunger}%`;
+            document.getElementById('happy-bar').style.width = player.happiness + '%';
+            document.getElementById('happy-text').innerText = `Счастье: ${player.happiness}%`;
+
+            renderInventory(inventory);
         }
 
-        function updateStats(p) {
-            document.getElementById('hunger-bar').style.width = p.hunger + '%';
-            document.getElementById('hunger-text').innerText = `Сытость: ${p.hunger}%`;
-            document.getElementById('energy-bar').style.width = p.energy + '%';
-            document.getElementById('energy-text').innerText = `Бодрость: ${p.energy}%`;
-            document.getElementById('happy-bar').style.width = p.happiness + '%';
-            document.getElementById('happy-text').innerText = `Счастье: ${p.happiness}%`;
+        function renderInventory(inventory) {
+            const list = document.getElementById('inventory-list');
+            if (inventory.length === 0) {
+                list.innerHTML = `<p style="color: #94a3b8; font-size: 13px;">Склад пуст! Отправь питомца в путешествие за едой.</p>`;
+                return;
+            }
+            list.innerHTML = inventory.map(item => `
+                <div class="item-row">
+                    <div>
+                        <h4 style="color: #38bdf8; font-size: 13px;">${item.item_name}</h4>
+                        <p style="font-size: 11px; color: #94a3b8;">Количество: ${item.quantity} шт.</p>
+                    </div>
+                    <button class="action-btn" onclick="useItem('${item.item_name}')">Съесть</button>
+                </div>
+            `).join('');
         }
 
-        async function doAction(action) {
-            const res = await fetch('/api/action', {
+        async function useItem(itemName) {
+            const res = await fetch('/api/use-item', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ telegram_id: tgUser.id, action })
+                body: JSON.stringify({ telegram_id: tgUser.id, item_name: itemName })
             });
             const data = await res.json();
-            showGame(data);
-            alert(data.actionMessage);
+            if (data.success) {
+                init();
+            } else {
+                alert(data.error);
+            }
         }
 
-        async function loadPartner() {
-            const res = await fetch(`/api/partner/${tgUser.id}`);
+        async function startTravel() {
+            const res = await fetch('/api/start-travel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ telegram_id: tgUser.id })
+            });
             const data = await res.json();
-            const visitDiv = document.getElementById('visit-info');
-            if (data.partner) {
-                const p = data.partner;
-                const pName = charsData[p.character]?.name || p.character;
-                visitDiv.innerHTML = `✨ <b>У Насти дома:</b> ${p.username}<br>👽 <b>Питомец:</b> ${pName}<br>⚡ <b>Уровень:</b> ${p.level} | <b>Счастье:</b> ${p.happiness}%<br><span style="color: #38bdf8; font-size: 11px;">Дверь открыта, можно заходить в гости и дарить подарки!</span>`;
-            } else {
-                visitDiv.innerHTML = '🐾 Настя еще не зашла в гостиную!<br><span style="font-size: 11px; color: #94a3b8;">Позови Настю в бота, чтобы обустроить общий дом вместе!</span>';
+            if (data.success) {
+                checkTravelStatus(data.travel_end);
+                alert("Питомец ушел в галактику! Бот пришлет тебе уведомление через 30 минут.");
             }
+        }
+
+        function checkTravelStatus(travelEnd) {
+            const btn = document.getElementById('travel-btn');
+            const timerText = document.getElementById('travel-timer');
+            
+            if (!travelEnd || travelEnd <= Date.now()) {
+                btn.style.display = 'block';
+                timerText.innerText = '';
+                return;
+            }
+
+            btn.style.display = 'none';
+            const interval = setInterval(() => {
+                const timeLeft = travelEnd - Date.now();
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    location.reload();
+                    return;
+                }
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                timerText.innerText = `⏳ Питомец на задании! Вернется через: ${minutes} мин ${seconds} сек`;
+            }, 1000);
         }
 
         function switchTab(tabId, btn) {
