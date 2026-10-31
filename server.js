@@ -34,7 +34,7 @@ bot.onText(/\/start/, (msg) => {
     bot.sendMessage(chatId, `Привет, ${msg.from.first_name}! Открывай наше космическое мини-приложение!`, {
         reply_markup: {
             inline_keyboard: [[
-                { text: "🚀 Запустить Игру", web_app: { url: "https://stitch-tamagotchi.onrender.com" } }
+                { text: "🚀 Запустить Игру", web_app: { url: "https://stitch-game.onrender.com" } }
             ]]
         }
     });
