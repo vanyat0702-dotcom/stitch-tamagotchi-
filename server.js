@@ -16,6 +16,7 @@ const db = new sqlite3.Database('./monsters.db', (err) => {
     else console.log('База данных успешно подключена!');
 });
 
+// Таблица игроков
 db.run(`
     CREATE TABLE IF NOT EXISTS players (
         telegram_id TEXT PRIMARY KEY,
@@ -26,13 +27,25 @@ db.run(`
         hunger INTEGER DEFAULT 100,
         energy INTEGER DEFAULT 100,
         happiness INTEGER DEFAULT 100,
-        status TEXT DEFAULT 'Дома с Настей'
+        status TEXT DEFAULT 'Дома с Настей',
+        travel_end INTEGER DEFAULT 0
+    )
+`);
+
+// Таблица склада (инвентаря) предметов
+db.run(`
+    CREATE TABLE IF NOT EXISTS inventory (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        telegram_id TEXT,
+        item_name TEXT,
+        item_type TEXT, -- 'food' или 'toy'
+        quantity INTEGER DEFAULT 1
     )
 `);
 
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, `🚀 Привет, ${msg.from.first_name}! Открывай галактическое тамагочи Стича и Насти!`, {
+    bot.sendMessage(chatId, `🚀 Привет, ${msg.from.first_name}! Твой питомец ждет тебя в галактическом тамагочи!`, {
         reply_markup: {
             inline_keyboard: [[
                 { text: "🎮 Запустить игру", web_app: { url: "https://stitch-game.onrender.com" } }
@@ -42,94 +55,108 @@ bot.onText(/\/start/, (msg) => {
 });
 
 app.get('/api/player/:tgId', (req, res) => {
-    db.get("SELECT * FROM players WHERE telegram_id = ?", [req.params.tgId], (err, row) => {
+    db.get("SELECT * FROM players WHERE telegram_id = ?", [req.params.tgId], (err, player) => {
         if (err) return res.status(500).json({ error: err.message });
-        if (!row) return res.json({ registered: false });
-        res.json({ registered: true, data: row });
+        if (!player) return res.json({ registered: false });
+
+        // Проверяем, не закончилось ли путешествие (30 минут = 1800000 мс)
+        const now = Date.now();
+        if (player.travel_end > 0 && now >= player.travel_end) {
+            // Награждаем случайным предметом
+            const lootTable = [
+                { name: 'Гавайский кокос 🥥', type: 'food' },
+                { name: 'Космический бургер 🍔', type: 'food' },
+                { name: 'Лазерный мячик 🎾', type: 'toy' },
+                { name: 'Сэндвич Рубена 🥪', type: 'food' }
+            ];
+            const foundItem = lootTable[Math.floor(Math.random() * lootTable.length)];
+
+            // Добавляем на склад
+            db.get("SELECT * FROM inventory WHERE telegram_id = ? AND item_name = ?", [req.params.tgId, foundItem.name], (err, row) => {
+                if (row) {
+                    db.run("UPDATE inventory SET quantity = quantity + 1 WHERE id = ?", [row.id]);
+                } else {
+                    db.run("INSERT INTO inventory (telegram_id, item_name, item_type, quantity) VALUES (?, ?, ?, 1)", [req.params.tgId, foundItem.name, foundItem.type]);
+                }
+            });
+
+            // Сбрасываем статус путешествия и шлем уведомление в бота
+            db.run("UPDATE players SET travel_end = 0, status = 'Вернулся из путешествия 🏆', xp = xp + 50 WHERE telegram_id = ?", [req.params.tgId]);
+            
+            bot.sendMessage(req.params.tgId, `🎉 Твой питомец вернулся из галактического путешествия и принес на склад предмет: *${foundItem.name}*! Зайди в игру проверить!`, { parse_mode: 'Markdown' });
+            
+            player.travel_end = 0;
+            player.status = 'Вернулся из путешествия 🏆';
+            player.xp += 50;
+        }
+
+        // Получаем инвентарь игрока
+        db.all("SELECT * FROM inventory WHERE telegram_id = ?", [req.params.tgId], (err, inventory) => {
+            res.json({ registered: true, data: player, inventory: inventory || [] });
+        });
     });
 });
 
 app.post('/api/register', (req, res) => {
     const { telegram_id, username, character } = req.body;
     db.run(
-        `INSERT OR REPLACE INTO players (telegram_id, username, character, level, xp, hunger, energy, happiness, status) VALUES (?, ?, ?, 1, 0, 100, 100, 100, 'Дома с Настей')`,
+        `INSERT OR REPLACE INTO players (telegram_id, username, character, level, xp, hunger, energy, happiness, status, travel_end) VALUES (?, ?, ?, 1, 0, 100, 100, 100, 'Дома', 0)`,
         [telegram_id, username, character],
         function(err) {
             if (err) return res.status(500).json({ error: err.message });
+            // Даем стартовый набор еды на склад
+            db.run(`INSERT INTO inventory (telegram_id, item_name, item_type, quantity) VALUES (?, 'Гавайский кокос 🥥', 'food', 2)`, [telegram_id]);
             res.json({ success: true });
         }
     );
 });
 
-app.post('/api/action', (req, res) => {
-    const { telegram_id, action } = req.body;
-    db.get("SELECT * FROM players WHERE telegram_id = ?", [telegram_id], (err, player) => {
-        if (err || !player) return res.status(400).json({ error: "Игрок не найден" });
+// Использование предметов со склада для поднятия сытости
+app.post('/api/use-item', (req, res) => {
+    const { telegram_id, item_name } = req.body;
+    db.get("SELECT * FROM inventory WHERE telegram_id = ? AND item_name = ?", [telegram_id, item_name], (err, item) => {
+        if (!item || item.quantity <= 0) return res.status(400).json({ error: "Предмет закончился на складе!" });
 
-        let { hunger, energy, happiness, xp, level, status } = player;
-        let message = "Действие выполнено!";
-
-        if (action === 'feed') {
-            hunger = Math.min(100, hunger + 30);
-            xp += 10;
-            message = "Мням! Питомец с аппетитом поел!";
-        } else if (action === 'play') {
-            happiness = Math.min(100, happiness + 25);
-            energy = Math.max(0, energy - 15);
-            xp += 20;
-            message = "Ухх! Весело поиграли!";
-        } else if (action === 'sleep') {
-            energy = 100;
-            hunger = Math.max(0, hunger - 10);
-            message = "Сладкие сны... Энергия на максимуме!";
-        } else if (action === 'house_tea') {
-            happiness = Math.min(100, happiness + 35);
-            energy = Math.min(100, energy + 20);
-            xp += 30;
-            status = 'Пьет вечерний чай в общем доме ☕';
-            message = "Уютный вечерний чай удался на славу! Настроение взлетело!";
-        } else if (action === 'visit_gift') {
-            happiness = Math.min(100, happiness + 40);
-            xp += 25;
-            status = 'В гостях у Насти 💕';
-            message = "Подарок передан! Питомец в восторге от визита в гости!";
-        } else if (action === 'travel_hawaii') {
-            happiness = Math.min(100, happiness + 35);
-            xp += 40;
-            status = 'На пляжах Гавайев 🌴';
-            message = "Отличный отдых на пляжах Гавайев! Питомец счастлив!";
-        } else if (action === 'travel_space') {
-            xp += 60;
-            energy = Math.max(0, energy - 20);
-            status = 'В галактическом патруле 🌌';
-            message = "Миссия в космосе успешно выполнена! Получено много опыта!";
-        }
-
-        if (xp >= level * 60) {
-            level += 1;
-            xp = 0;
-            message += ` 🎉 Поздравляем! Питомец поднялся до ${level} уровня!`;
-        }
-
-        db.run(
-            `UPDATE players SET hunger = ?, energy = ?, happiness = ?, xp = ?, level = ?, status = ? WHERE telegram_id = ?`,
-            [hunger, energy, happiness, xp, level, status, telegram_id],
-            (err) => {
-                if (err) return res.status(500).json({ error: err.message });
-                db.get("SELECT * FROM players WHERE telegram_id = ?", [telegram_id], (err, updated) => {
-                    res.json({ ...updated, actionMessage: message });
-                });
+        db.get("SELECT * FROM players WHERE telegram_id = ?", [telegram_id], (err, player) => {
+            let { hunger, happiness, xp, level } = player;
+            
+            if (item.item_type === 'food') {
+                hunger = Math.min(100, hunger + 35);
+                xp += 15;
+            } else {
+                happiness = Math.min(100, happiness + 30);
+                xp += 15;
             }
-        );
+
+            if (xp >= level * 60) { level += 1; xp = 0; }
+
+            // Уменьшаем количество предмета
+            if (item.quantity === 1) {
+                db.run("DELETE FROM inventory WHERE id = ?", [item.id]);
+            } else {
+                db.run("UPDATE inventory SET quantity = quantity - 1 WHERE id = ?", [item.id]);
+            }
+
+            db.run("UPDATE players SET hunger = ?, happiness = ?, xp = ?, level = ? WHERE telegram_id = ?", [hunger, happiness, xp, level, telegram_id], () => {
+                res.json({ success: true, message: `Съели/использовали ${item.name}! Сытость поднята.` });
+            });
+        });
     });
 });
 
-app.get('/api/partner/:myTgId', (req, res) => {
-    db.get("SELECT * FROM players WHERE telegram_id != ?", [req.params.myTgId], (err, partner) => {
+// Отправка в путешествие на 30 минут
+app.post('/api/start-travel', (req, res) => {
+    const { telegram_id } = req.body;
+    const travelDuration = 30 * 60 * 1000; // 30 минут в миллисекундах
+    const travelEnd = Date.now() + travelDuration;
+
+    db.run("UPDATE players SET travel_end = ?, status = 'Ушел наводить бардак в галактике 🚀' WHERE telegram_id = ?", [travelEnd, telegram_id], (err) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ partner: partner || null });
+        
+        bot.sendMessage(telegram_id, "🚀 Твой питомец отправился в галактическое путешествие наводить бардак! Жди уведомления через 30 минут.");
+        res.json({ success: true, travel_end: travelEnd });
     });
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Галактический сервер запущен на порту ${PORT}`));
+app.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
