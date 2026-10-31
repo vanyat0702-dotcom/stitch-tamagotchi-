@@ -16,7 +16,6 @@ const db = new sqlite3.Database('./monsters.db', (err) => {
     else console.log('База данных успешно подключена!');
 });
 
-// Таблица игроков
 db.run(`
     CREATE TABLE IF NOT EXISTS players (
         telegram_id TEXT PRIMARY KEY,
@@ -32,20 +31,19 @@ db.run(`
     )
 `);
 
-// Таблица склада (инвентаря) предметов
 db.run(`
     CREATE TABLE IF NOT EXISTS inventory (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         telegram_id TEXT,
         item_name TEXT,
-        item_type TEXT, -- 'food' или 'toy'
+        item_type TEXT,
         quantity INTEGER DEFAULT 1
     )
 `);
 
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, `🚀 Привет, ${msg.from.first_name}! Твой питомец ждет тебя в галактическом тамагочи!`, {
+    bot.sendMessage(chatId, `🚀 Привет, ${msg.from.first_name}! Открывай галактическое тамагочи Стича и Насти!`, {
         reply_markup: {
             inline_keyboard: [[
                 { text: "🎮 Запустить игру", web_app: { url: "https://stitch-game.onrender.com" } }
@@ -59,10 +57,8 @@ app.get('/api/player/:tgId', (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!player) return res.json({ registered: false });
 
-        // Проверяем, не закончилось ли путешествие (30 минут = 1800000 мс)
         const now = Date.now();
         if (player.travel_end > 0 && now >= player.travel_end) {
-            // Награждаем случайным предметом
             const lootTable = [
                 { name: 'Гавайский кокос 🥥', type: 'food' },
                 { name: 'Космический бургер 🍔', type: 'food' },
@@ -71,7 +67,6 @@ app.get('/api/player/:tgId', (req, res) => {
             ];
             const foundItem = lootTable[Math.floor(Math.random() * lootTable.length)];
 
-            // Добавляем на склад
             db.get("SELECT * FROM inventory WHERE telegram_id = ? AND item_name = ?", [req.params.tgId, foundItem.name], (err, row) => {
                 if (row) {
                     db.run("UPDATE inventory SET quantity = quantity + 1 WHERE id = ?", [row.id]);
@@ -80,17 +75,14 @@ app.get('/api/player/:tgId', (req, res) => {
                 }
             });
 
-            // Сбрасываем статус путешествия и шлем уведомление в бота
             db.run("UPDATE players SET travel_end = 0, status = 'Вернулся из путешествия 🏆', xp = xp + 50 WHERE telegram_id = ?", [req.params.tgId]);
-            
-            bot.sendMessage(req.params.tgId, `🎉 Твой питомец вернулся из галактического путешествия и принес на склад предмет: *${foundItem.name}*! Зайди в игру проверить!`, { parse_mode: 'Markdown' });
+            bot.sendMessage(req.params.tgId, `🎉 Питомец вернулся из галактического путешествия и принес на склад предмет: *${foundItem.name}*!`, { parse_mode: 'Markdown' });
             
             player.travel_end = 0;
             player.status = 'Вернулся из путешествия 🏆';
             player.xp += 50;
         }
 
-        // Получаем инвентарь игрока
         db.all("SELECT * FROM inventory WHERE telegram_id = ?", [req.params.tgId], (err, inventory) => {
             res.json({ registered: true, data: player, inventory: inventory || [] });
         });
@@ -104,14 +96,12 @@ app.post('/api/register', (req, res) => {
         [telegram_id, username, character],
         function(err) {
             if (err) return res.status(500).json({ error: err.message });
-            // Даем стартовый набор еды на склад
             db.run(`INSERT INTO inventory (telegram_id, item_name, item_type, quantity) VALUES (?, 'Гавайский кокос 🥥', 'food', 2)`, [telegram_id]);
             res.json({ success: true });
         }
     );
 });
 
-// Использование предметов со склада для поднятия сытости
 app.post('/api/use-item', (req, res) => {
     const { telegram_id, item_name } = req.body;
     db.get("SELECT * FROM inventory WHERE telegram_id = ? AND item_name = ?", [telegram_id, item_name], (err, item) => {
@@ -130,7 +120,6 @@ app.post('/api/use-item', (req, res) => {
 
             if (xp >= level * 60) { level += 1; xp = 0; }
 
-            // Уменьшаем количество предмета
             if (item.quantity === 1) {
                 db.run("DELETE FROM inventory WHERE id = ?", [item.id]);
             } else {
@@ -138,23 +127,55 @@ app.post('/api/use-item', (req, res) => {
             }
 
             db.run("UPDATE players SET hunger = ?, happiness = ?, xp = ?, level = ? WHERE telegram_id = ?", [hunger, happiness, xp, level, telegram_id], () => {
-                res.json({ success: true, message: `Съели/использовали ${item.name}! Сытость поднята.` });
+                res.json({ success: true });
             });
         });
     });
 });
 
-// Отправка в путешествие на 30 минут
+app.post('/api/action', (req, res) => {
+    const { telegram_id, action } = req.body;
+    db.get("SELECT * FROM players WHERE telegram_id = ?", [telegram_id], (err, player) => {
+        if (err || !player) return res.status(400).json({ error: "Игрок не найден" });
+
+        let { happiness, status } = player;
+        let message = "Действие выполнено!";
+
+        if (action === 'house_tea') {
+            happiness = Math.min(100, happiness + 35);
+            status = 'Пьет вечерний чай в общем доме ☕';
+            message = "Уютный вечерний чай удался! Настроение на высоте.";
+        } else if (action === 'visit_gift') {
+            happiness = Math.min(100, happiness + 40);
+            status = 'В гостях у Насти 💕';
+            message = "Подарок передан! Питомец в восторге от визита!";
+        }
+
+        db.run(`UPDATE players SET happiness = ?, status = ? WHERE telegram_id = ?`, [happiness, status, telegram_id], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            db.get("SELECT * FROM players WHERE telegram_id = ?", [telegram_id], (err, updated) => {
+                res.json({ ...updated, actionMessage: message });
+            });
+        });
+    });
+});
+
 app.post('/api/start-travel', (req, res) => {
     const { telegram_id } = req.body;
-    const travelDuration = 30 * 60 * 1000; // 30 минут в миллисекундах
+    const travelDuration = 30 * 60 * 1000;
     const travelEnd = Date.now() + travelDuration;
 
     db.run("UPDATE players SET travel_end = ?, status = 'Ушел наводить бардак в галактике 🚀' WHERE telegram_id = ?", [travelEnd, telegram_id], (err) => {
         if (err) return res.status(500).json({ error: err.message });
-        
-        bot.sendMessage(telegram_id, "🚀 Твой питомец отправился в галактическое путешествие наводить бардак! Жди уведомления через 30 минут.");
+        bot.sendMessage(telegram_id, "🚀 Питомец отправился на поиски приключений! Жди уведомления через 30 минут.");
         res.json({ success: true, travel_end: travelEnd });
+    });
+});
+
+app.get('/api/partner/:myTgId', (req, res) => {
+    db.get("SELECT * FROM players WHERE telegram_id != ?", [req.params.myTgId], (err, partner) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ partner: partner || null });
     });
 });
 
