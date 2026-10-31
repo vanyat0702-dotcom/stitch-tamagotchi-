@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stitch & Angel Tamagotchi</title>
-    <script src="https://telegram.org/js/telegram-web-app.js?v=3"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js?v=4"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background: #121826; color: #fff; padding: 15px; text-align: center; }
         .card { background: #1e293b; border-radius: 16px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .monster-avatar { width: 130px; height: 130px; border-radius: 50%; border: 4px solid #38bdf8; margin: 15px auto; display: flex; align-items: center; justify-content: center; font-size: 60px; background: #334155; }
+        .monster-avatar { width: 130px; height: 130px; border-radius: 50%; border: 4px solid #38bdf8; margin: 15px auto; display: flex; align-items: center; justify-content: center; font-size: 55px; background: #334155; }
         .bar-container { background: #334155; border-radius: 10px; height: 18px; margin: 8px 0; overflow: hidden; position: relative; }
         .bar-fill { height: 100%; transition: width 0.3s ease; }
         .bg-hunger { background: #ef4444; }
@@ -22,32 +22,31 @@
         .partner-card { border: 2px dashed #ec4899; }
         .hidden { display: none; }
         .selection-row { display: flex; justify-content: space-around; gap: 15px; margin-top: 20px; }
-        .option-box { cursor: pointer; padding: 10px; border-radius: 12px; transition: background 0.2s; }
-        .option-box:active { background: #334155; }
+        .option-box { cursor: pointer; padding: 10px; border-radius: 12px; }
     </style>
 </head>
 <body>
 
     <div id="selection-screen" class="card">
-        <h2>Выбери своего монстрика!</h2>
+        <h2>Выбери персонажа!</h2>
         <p style="color: #94a3b8; font-size: 13px; margin-bottom: 10px;">Игра для двоих</p>
         <div class="selection-row">
             <div class="option-box" onclick="selectCharacter('stitch')">
-                <div class="monster-avatar">👽</div>
-                <h3 style="margin-top: 8px; color: #38bdf8;">Стич ⚡</h3>
+                <div class="monster-avatar">ST</div>
+                <h3 style="margin-top: 8px; color: #38bdf8;">Стич</h3>
             </div>
             <div class="option-box" onclick="selectCharacter('angel')">
-                <div class="monster-avatar" style="border-color:#ec4899">🌸</div>
-                <h3 style="margin-top: 8px; color: #ec4899;">Ангел 💕</h3>
+                <div class="monster-avatar" style="border-color:#ec4899">AN</div>
+                <h3 style="margin-top: 8px; color: #ec4899;">Ангел</h3>
             </div>
         </div>
     </div>
 
     <div id="game-screen" class="hidden">
         <div class="card">
-            <h2 id="char-name">Твой Монстрик</h2>
+            <h2 id="char-name">Монстрик</h2>
             <p id="char-level" style="color: #38bdf8; margin-top: 5px;">Уровень 1</p>
-            <div id="char-emoji" class="monster-avatar">👽</div>
+            <div id="char-emoji" class="monster-avatar">ST</div>
 
             <div class="bar-container">
                 <div id="hunger-bar" class="bar-fill bg-hunger" style="width: 100%;"></div>
@@ -63,14 +62,14 @@
             </div>
 
             <div class="btn-grid">
-                <button onclick="doAction('feed')">🍖 Еда</button>
-                <button onclick="doAction('play')">🎮 Игры</button>
-                <button onclick="doAction('sleep')">😴 Сон</button>
+                <button onclick="doAction('feed')">Еда</button>
+                <button onclick="doAction('play')">Игры</button>
+                <button onclick="doAction('sleep')">Сон</button>
             </div>
         </div>
 
         <div class="card partner-card">
-            <h3>Профиль Партнера 💕</h3>
+            <h3>Профиль Партнера</h3>
             <div id="partner-info" style="margin-top: 10px; color: #cbd5e1;">Загрузка...</div>
         </div>
     </div>
@@ -90,9 +89,7 @@
                 } else {
                     document.getElementById('selection-screen').classList.remove('hidden');
                 }
-            } catch (e) {
-                console.error(e);
-            }
+            } catch (e) { console.error(e); }
         }
 
         async function selectCharacter(char) {
@@ -108,9 +105,9 @@
             document.getElementById('selection-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
             const isStitch = player.character === 'stitch';
-            document.getElementById('char-name').innerText = isStitch ? 'Стич ⚡' : 'Ангел 💕';
+            document.getElementById('char-name').innerText = isStitch ? 'Стич' : 'Ангел';
             const avatar = document.getElementById('char-emoji');
-            avatar.innerText = isStitch ? '👽' : '🌸';
+            avatar.innerText = isStitch ? 'ST' : 'AN';
             if (!isStitch) avatar.style.borderColor = '#ec4899';
             document.getElementById('char-level').innerText = `Уровень ${player.level} (${player.xp} XP)`;
             updateStats(player);
@@ -141,7 +138,7 @@
             const pDiv = document.getElementById('partner-info');
             if (data.partner) {
                 const p = data.partner;
-                pDiv.innerHTML = `<p>${p.username} (${p.character === 'stitch' ? 'Стич 👽' : 'Ангел 🌸'}) — Ур. ${p.level}</p>`;
+                pDiv.innerHTML = `<p>${p.username} (${p.character === 'stitch' ? 'Стич' : 'Ангел'}) — Ур. ${p.level}</p>`;
             } else {
                 pDiv.innerText = 'Вторая половинка еще не зашла!';
             }
