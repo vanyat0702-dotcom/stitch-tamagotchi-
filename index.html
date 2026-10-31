@@ -3,108 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stitch & Friends Tamagotchi</title>
-    <script src="https://telegram.org/js/telegram-web-app.js?v=8"></script>
+    <title>Stitch & Angel Home Universe</title>
+    <script src="https://telegram.org/js/telegram-web-app.js?v=10"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #0b1329; color: #fff; padding: 15px; text-align: center; }
-        .card { background: #1e293b; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); border: 1px solid #334155; }
-        .monster-avatar-container { width: 140px; height: 140px; border-radius: 50%; border: 4px solid #38bdf8; margin: 15px auto; overflow: hidden; background: #0f172a; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; }
+        body { background: #070b19; color: #fff; padding: 12px; text-align: center; padding-bottom: 75px; }
+        
+        .card { background: #131b2e; border-radius: 20px; padding: 18px; margin-bottom: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.6); border: 1px solid #1e293b; }
+        
+        /* Аватары */
+        .monster-avatar-container { width: 140px; height: 140px; border-radius: 50%; border: 4px solid #38bdf8; margin: 12px auto; overflow: hidden; background: #0b1329; box-shadow: 0 0 25px rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; }
         .monster-avatar-container img { width: 100%; height: 100%; object-fit: cover; }
         
-        .dialog-bubble { background: #334155; border-radius: 14px; padding: 12px 15px; margin: 12px 0; font-size: 14px; color: #38bdf8; font-style: italic; position: relative; border-left: 4px solid #38bdf8; }
+        /* Навигация */
+        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #0f172a; display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid #1e293b; z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
+        .nav-item { background: none; border: none; color: #64748b; font-size: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; font-weight: bold; }
+        .nav-item.active { color: #38bdf8; }
+        .nav-item span.icon { font-size: 18px; }
+
+        .dialog-bubble { background: #1e293b; border-radius: 14px; padding: 12px 15px; margin: 12px 0; font-size: 13px; color: #38bdf8; font-style: italic; border-left: 4px solid #38bdf8; text-align: left; }
         
-        .bar-container { background: #0f172a; border-radius: 12px; height: 20px; margin: 10px 0; overflow: hidden; position: relative; border: 1px solid #334155; }
+        /* Шкалы */
+        .bar-container { background: #0b1329; border-radius: 10px; height: 18px; margin: 8px 0; overflow: hidden; position: relative; border: 1px solid #1e293b; }
         .bar-fill { height: 100%; transition: width 0.4s ease; }
         .bg-hunger { background: linear-gradient(90deg, #ef4444, #f87171); }
         .bg-energy { background: linear-gradient(90deg, #eab308, #facc15); }
         .bg-happy { background: linear-gradient(90deg, #ec4899, #f472b6); }
-        .bar-text { position: absolute; width: 100%; top: 0; left: 0; font-size: 12px; font-weight: bold; line-height: 20px; text-shadow: 1px 1px 2px #000; }
+        .bar-text { position: absolute; width: 100%; top: 0; left: 0; font-size: 11px; font-weight: bold; line-height: 18px; text-shadow: 1px 1px 2px #000; }
         
-        .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        button { background: #38bdf8; color: #0f172a; border: none; padding: 12px 8px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 13px; transition: transform 0.1s, background 0.2s; }
-        button:active { transform: scale(0.93); background: #0ea5e9; }
+        .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+        button.action-btn { background: #38bdf8; color: #070b19; border: none; padding: 12px 6px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 12px; }
+        button.action-btn:active { transform: scale(0.93); }
+
+        .action-card { background: #1a233a; border: 1px solid #38bdf8; border-radius: 16px; padding: 15px; margin-top: 10px; text-align: left; display: flex; justify-content: space-between; align-items: center; }
         
-        .partner-card { border: 2px dashed #ec4899; background: #1a102f; }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
         
-        .selection-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 15px; }
-        .option-box { background: #0f172a; border: 2px solid #334155; border-radius: 16px; padding: 12px; cursor: pointer; transition: all 0.2s; }
-        .option-box:hover { border-color: #38bdf8; transform: translateY(-3px); }
-        .option-avatar { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 8px; overflow: hidden; border: 2px solid #38bdf8; }
+        .selection-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px; }
+        .option-box { background: #0b1329; border: 2px solid #1e293b; border-radius: 16px; padding: 12px; cursor: pointer; }
+        .option-avatar { width: 75px; height: 75px; border-radius: 50%; margin: 0 auto 8px; overflow: hidden; border: 2px solid #38bdf8; }
         .option-avatar img { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
 
-    <!-- ЭКРАН ВЫБОРА ПЕРСОНАЖА -->
+    <!-- ЭКРАН ВЫБОРА -->
     <div id="selection-screen" class="card">
-        <h2>Выбери своего монстрика! 👽</h2>
-        <p style="color: #94a3b8; font-size: 13px; margin: 8px 0 15px;">Галактический эксперимент для двоих с Настей</p>
+        <h2 style="color: #38bdf8;">Выбери своего монстрика! 👽</h2>
+        <p style="color: #94a3b8; font-size: 12px; margin: 6px 0 12px;">Строим общий дом и путешествуем с Настей</p>
         
         <div class="selection-grid">
             <div class="option-box" onclick="selectCharacter('stitch')">
                 <div class="option-avatar"><img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300" alt="Стич"></div>
-                <h4 style="color: #38bdf8;">Стич ⚡</h4>
-                <p style="font-size: 10px; color: #94a3b8; margin-top: 4px;">Эксперимент 626</p>
+                <h4 style="color: #38bdf8; font-size: 14px;">Стич ⚡</h4>
             </div>
             <div class="option-box" onclick="selectCharacter('angel')">
                 <div class="option-avatar" style="border-color: #ec4899;"><img src="https://images.unsplash.com/photo-1563089145-599997674d42?w=300" alt="Ангел"></div>
-                <h4 style="color: #ec4899;">Ангел 💕</h4>
-                <p style="font-size: 10px; color: #94a3b8; margin-top: 4px;">Эксперимент 624</p>
+                <h4 style="color: #ec4899; font-size: 14px;">Ангел 💕</h4>
             </div>
             <div class="option-box" onclick="selectCharacter('sparky')">
                 <div class="option-avatar" style="border-color: #eab308;"><img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300" alt="Спарки"></div>
-                <h4 style="color: #eab308;">Спарки ⚡</h4>
-                <p style="font-size: 10px; color: #94a3b8; margin-top: 4px;">Эксперимент 221</p>
+                <h4 style="color: #eab308; font-size: 14px;">Спарки ⚡</h4>
             </div>
             <div class="option-box" onclick="selectCharacter('ruben')">
                 <div class="option-avatar" style="border-color: #f97316;"><img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=300" alt="Рубен"></div>
-                <h4 style="color: #f97316;">Рубен 🥪</h4>
-                <p style="font-size: 10px; color: #94a3b8; margin-top: 4px;">Эксперимент 625</p>
+                <h4 style="color: #f97316; font-size: 14px;">Рубен 🥪</h4>
             </div>
         </div>
     </div>
 
-    <!-- ИГРОВОЙ ЭКРАН -->
-    <div id="game-screen" class="hidden">
-        <div class="card">
-            <h2 id="char-name">Монстрик</h2>
-            <p id="char-level" style="color: #38bdf8; margin-top: 3px; font-size: 13px;">Уровень 1 (0 XP)</p>
-            
-            <div class="monster-avatar-container">
-                <img id="char-img" src="" alt="Питомчик">
-            </div>
+    <!-- ИГРОВОЙ ИНТЕРФЕЙС -->
+    <div id="game-container" class="hidden">
+        
+        <!-- ВКЛАДКА 1: МОЙ ПИТОМЕЦ -->
+        <div id="tab-home" class="tab-content">
+            <div class="card">
+                <h2 id="char-name">Монстрик</h2>
+                <p id="char-level" style="color: #38bdf8; margin-top: 3px; font-size: 13px;">Уровень 1 (0 XP)</p>
+                
+                <div class="monster-avatar-container">
+                    <img id="char-img" src="" alt="Питомчик">
+                </div>
 
-            <!-- Живой диалог / мысли питомца -->
-            <div id="dialog-box" class="dialog-bubble">
-                "Охана — значит семья. Никто не брошен и никто не забыт!"
-            </div>
+                <div id="dialog-box" class="dialog-bubble">
+                    "Охана — значит семья. Никто не брошен!"
+                </div>
 
-            <div class="bar-container">
-                <div id="hunger-bar" class="bar-fill bg-hunger" style="width: 100%;"></div>
-                <div id="hunger-text" class="bar-text">Сытость: 100%</div>
-            </div>
-            <div class="bar-container">
-                <div id="energy-bar" class="bar-fill bg-energy" style="width: 100%;"></div>
-                <div id="energy-text" class="bar-text">Бодрость: 100%</div>
-            </div>
-            <div class="bar-container">
-                <div id="happy-bar" class="bar-fill bg-happy" style="width: 100%;"></div>
-                <div id="happy-text" class="bar-text">Счастье: 100%</div>
-            </div>
+                <div class="bar-container">
+                    <div id="hunger-bar" class="bar-fill bg-hunger" style="width: 100%;"></div>
+                    <div id="hunger-text" class="bar-text">Сытость: 100%</div>
+                </div>
+                <div class="bar-container">
+                    <div id="energy-bar" class="bar-fill bg-energy" style="width: 100%;"></div>
+                    <div id="energy-text" class="bar-text">Бодрость: 100%</div>
+                </div>
+                <div class="bar-container">
+                    <div id="happy-bar" class="bar-fill bg-happy" style="width: 100%;"></div>
+                    <div id="happy-text" class="bar-text">Счастье: 100%</div>
+                </div>
 
-            <div class="btn-grid">
-                <button onclick="doAction('feed')">🍖 Покормить</button>
-                <button onclick="doAction('play')">🎮 Играть</button>
-                <button onclick="doAction('sleep')">😴 Уложить спать</button>
+                <div class="btn-grid">
+                    <button class="action-btn" onclick="doAction('feed')">🍖 Еда</button>
+                    <button class="action-btn" onclick="doAction('play')">🎮 Игры</button>
+                    <button class="action-btn" onclick="doAction('sleep')">😴 Сон</button>
+                </div>
             </div>
         </div>
 
-        <div class="card partner-card">
-            <h3 style="color: #ec4899; font-size: 16px;">Вторая половинка 💕</h3>
-            <div id="partner-info" style="margin-top: 8px; color: #cbd5e1; font-size: 14px;">Ищем Настю в галактике...</div>
+        <!-- ВКЛАДКА 2: НАШ ОБЩИЙ ДОМ -->
+        <div id="tab-house" class="tab-content hidden">
+            <div class="card" style="border: 2px solid #38bdf8; background: #111c33;">
+                <h2 style="color: #38bdf8;">🏡 Наш Общий Дом</h2>
+                <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Уютное гнездышко для вас с Настей</p>
+                
+                <div style="background: #0b1329; padding: 15px; border-radius: 14px; margin-top: 15px; text-align: left;">
+                    <h4 style="color: #38bdf8; margin-bottom: 5px;">🛋️ Статус очага:</h4>
+                    <p style="font-size: 12px; color: #cbd5e1;" id="house-status">В доме тепло, пахнет гавайским кофе и уютом. Питомцы играют вместе!</p>
+                </div>
+
+                <div class="action-card" style="margin-top: 15px;">
+                    <div>
+                        <h4 style="color: #ec4899;">☕ Устроить вечерний чай</h4>
+                        <p style="font-size: 11px; color: #94a3b8;">Поднять счастье обоим питомцам (+35%)</p>
+                    </div>
+                    <button class="action-btn" onclick="doAction('house_tea')">Пить чай</button>
+                </div>
+            </div>
         </div>
+
+        <!-- ВКЛАДКА 3: В ГОСТИ К НАСТЕ -->
+        <div id="tab-visit" class="tab-content hidden">
+            <div class="card" style="border: 2px dashed #ec4899; background: #1a102f;">
+                <h2 style="color: #ec4899;">🚪 В гостях у Насти</h2>
+                <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Загляните в гости друг к другу</p>
+                
+                <div id="visit-info" style="margin-top: 15px; color: #cbd5e1; font-size: 13px; text-align: left; background: #0b1329; padding: 15px; border-radius: 12px;">
+                    Загрузка данных гостевой комнаты...
+                </div>
+
+                <div class="action-card" style="margin-top: 15px;">
+                    <div>
+                        <h4 style="color: #38bdf8;">🎁 Принести гостинец</h4>
+                        <p style="font-size: 11px; color: #94a3b8;">Поделиться вкусняшкой с питомцем Насти</p>
+                    </div>
+                    <button class="action-btn" onclick="doAction('visit_gift')">Подарить</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ВКЛАДКА 4: ПУТЕШЕСТВИЯ -->
+        <div id="tab-travel" class="tab-content hidden">
+            <div class="card">
+                <h2 style="color: #38bdf8;">🗺️ Совместные Путешествия</h2>
+                <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Исследуйте галактику вместе с Настей!</p>
+                
+                <div class="action-card">
+                    <div>
+                        <h4 style="color: #38bdf8;">🌴 Пляжи Гавайев</h4>
+                        <p style="font-size: 11px; color: #94a3b8;">Романтический отдых у океана</p>
+                    </div>
+                    <button class="action-btn" onclick="doAction('travel_hawaii')">Лететь</button>
+                </div>
+
+                <div class="action-card">
+                    <div>
+                        <h4 style="color: #eab308;">🌌 Космический патруль</h4>
+                        <p style="font-size: 11px; color: #94a3b8;">Галактические приключения и много XP</p>
+                    </div>
+                    <button class="action-btn" onclick="doAction('travel_space')">Лететь</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ -->
+        <div class="nav-bar">
+            <button class="nav-item active" onclick="switchTab('home', this)"><span class="icon">🏠</span>Питомец</button>
+            <button class="nav-item" onclick="switchTab('house', this)"><span class="icon">🏡</span>Общий дом</button>
+            <button class="nav-item" onclick="switchTab('visit', this)"><span class="icon">🚪</span>В гостях</button>
+            <button class="nav-item" onclick="switchTab('travel', this)"><span class="icon">🗺️</span>Поездки</button>
+        </div>
+
     </div>
 
     <script>
@@ -113,32 +191,10 @@
         const tgUser = tg.initDataUnsafe?.user || { id: "123456", first_name: "Брат" };
 
         const charsData = {
-            stitch: { name: "Стич ⚡", img: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300", phrases: [
-                "Стич крушить! Но ради Насти готов быть хорошим.",
-                "Где мой кофе и красный лазерный пистолет?",
-                "Алоха! Почеши за ушком, а то устрою землетрясение."
-            ]},
-            angel: { name: "Ангел 💕", img: "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", phrases: [
-                "Напеваю волшебную песню, чтобы все были счастливы~",
-                "Любовь способна перевернуть всю галактику!",
-                "Стич, не хулигань, давай лучше потанцуем!"
-            ]},
-            sparky: { name: "Спарки ⚡", img: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300", phrases: [
-                "Хууууу! Пахнет палеными проводами и весельем!",
-                "Могу зажечь весь дом! Береги розетки!",
-                "Дай мне зарядиться от батарейки!"
-            ]},
-            ruben: { name: "Рубен 🥪", img: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=300", phrases: [
-                "У меня лапки, и вообще... где мой идеальный сэндвич?",
-                "Работать? Не, я лучше полежу на диване.",
-                "Сэндвич с арахисовой пастой и консервами — вершина эволюции!"
-            ]}
-        };
-
-        const actionPhrases = {
-            feed: ["Мням-мням! Это было вкуснее космического топлива!", "Живот полон, теперь можно и похулиганить!", "Спасибо, братан, накормил от души!"],
-            play: ["Йо-хо-хо! Прыгаем до потолка!", "Игры — это святое! Настя оценит!", "Ухх, заряд бодрости на максимум!"],
-            sleep: ["Хррр-бульк... Вижу сладкие галактические сны...", "Восстанавливаю силы для новых приключений...", "Тихо... Звездный малыш отдыхает."]
+            stitch: { name: "Стич ⚡", img: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300", phrases: ["Охана — значит семья!", "Стич дома с Настей!", "Алоха!"] },
+            angel: { name: "Ангел 💕", img: "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", phrases: ["Любовь спасает галактику~", "Уютный вечер дома с любимыми."] },
+            sparky: { name: "Спарки ⚡", img: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300", phrases: ["Искры летят! В общем доме тепло."] },
+            ruben: { name: "Рубен 🥪", img: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=300", phrases: ["Сэндвич на кухне общего дома — лучшее изобретение."] }
         };
 
         async function init() {
@@ -165,20 +221,17 @@
 
         function showGame(player) {
             document.getElementById('selection-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('game-container').classList.remove('hidden');
             
             const info = charsData[player.character] || charsData['stitch'];
             document.getElementById('char-name').innerText = info.name;
             document.getElementById('char-img').src = info.img;
             document.getElementById('char-level').innerText = `Уровень ${player.level} (${player.xp} XP)`;
             
-            setRandomPhrase(info.phrases);
-            updateStats(player);
-        }
-
-        function setRandomPhrase(arr) {
-            const randomMsg = arr[Math.floor(Math.random() * arr.length)];
+            const randomMsg = info.phrases[Math.floor(Math.random() * info.phrases.length)];
             document.getElementById('dialog-box').innerText = `"${randomMsg}"`;
+            
+            updateStats(player);
         }
 
         function updateStats(p) {
@@ -197,23 +250,29 @@
                 body: JSON.stringify({ telegram_id: tgUser.id, action })
             });
             const data = await res.json();
-            updateStats(data);
-            
-            // Выводим случайную фразу реакции на действие
-            setRandomPhrase(actionPhrases[action]);
+            showGame(data);
+            alert(data.actionMessage);
         }
 
         async function loadPartner() {
             const res = await fetch(`/api/partner/${tgUser.id}`);
             const data = await res.json();
-            const pDiv = document.getElementById('partner-info');
+            const visitDiv = document.getElementById('visit-info');
             if (data.partner) {
                 const p = data.partner;
                 const pName = charsData[p.character]?.name || p.character;
-                pDiv.innerHTML = `✨ <b>${p.username}</b> играет за <b>${pName}</b><br>⚡ Уровень: ${p.level} | Сытость: ${p.hunger}%`;
+                visitDiv.innerHTML = `✨ <b>У Насти дома:</b> ${p.username}<br>👽 <b>Питомец:</b> ${pName}<br>⚡ <b>Уровень:</b> ${p.level} | <b>Счастье:</b> ${p.happiness}%<br><span style="color: #38bdf8; font-size: 11px;">Дверь открыта, можно заходить в гости и дарить подарки!</span>`;
             } else {
-                pDiv.innerHTML = '🐾 Вторая половинка еще не выбрала питомца!<br><span style="font-size: 11px; color: #94a3b8;">Позови Настю в бота, чтобы растить монстриков вместе!</span>';
+                visitDiv.innerHTML = '🐾 Настя еще не зашла в гостиную!<br><span style="font-size: 11px; color: #94a3b8;">Позови Настю в бота, чтобы обустроить общий дом вместе!</span>';
             }
+        }
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
         }
 
         init();
